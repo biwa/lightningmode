@@ -32,6 +32,8 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.comboBox1 = new System.Windows.Forms.ComboBox();
 			this.acceptbutton = new System.Windows.Forms.Button();
+			this.brightness = new CodeImp.DoomBuilder.Controls.ButtonsNumericTextbox();
+			this.label2 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// isenabled
@@ -73,11 +75,39 @@
 			this.acceptbutton.UseVisualStyleBackColor = true;
 			this.acceptbutton.Click += new System.EventHandler(this.acceptbutton_Click);
 			// 
+			// brightness
+			// 
+			this.brightness.AllowDecimal = false;
+			this.brightness.AllowNegative = true;
+			this.brightness.AllowRelative = true;
+			this.brightness.ButtonStep = 8;
+			this.brightness.ButtonStepBig = 16F;
+			this.brightness.ButtonStepFloat = 1F;
+			this.brightness.ButtonStepSmall = 1F;
+			this.brightness.ButtonStepsUseModifierKeys = true;
+			this.brightness.ButtonStepsWrapAround = false;
+			this.brightness.Location = new System.Drawing.Point(73, 64);
+			this.brightness.Name = "brightness";
+			this.brightness.Size = new System.Drawing.Size(73, 24);
+			this.brightness.StepValues = null;
+			this.brightness.TabIndex = 25;
+			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(14, 69);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(56, 13);
+			this.label2.TabIndex = 26;
+			this.label2.Text = "Brightness";
+			// 
 			// EditLightThingForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(504, 420);
+			this.Controls.Add(this.label2);
+			this.Controls.Add(this.brightness);
 			this.Controls.Add(this.acceptbutton);
 			this.Controls.Add(this.comboBox1);
 			this.Controls.Add(this.label1);
@@ -98,5 +128,7 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.ComboBox comboBox1;
 		private System.Windows.Forms.Button acceptbutton;
+		private CodeImp.DoomBuilder.Controls.ButtonsNumericTextbox brightness;
+		private System.Windows.Forms.Label label2;
 	}
 }

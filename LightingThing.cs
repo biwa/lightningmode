@@ -16,6 +16,7 @@ namespace CodeImp.DoomBuilder.LightingMode
 		private Vector3D oldpos;
 		private bool enabled;
 		private int maxradius;
+		private int brightness;
 
 		private bool selected;
 
@@ -27,6 +28,7 @@ namespace CodeImp.DoomBuilder.LightingMode
 		public Vector3D OldPosition { get { return oldpos; } set { oldpos = value; } }
 		public bool Enabled { get { return enabled; } set { enabled = value; } }
 		public int MaxRadius { get { return maxradius; } set { maxradius = value; } }
+		public int Brightness { get { return brightness; } set { brightness = value; } }
 
 		public bool Selected { get { return selected; } set { selected = value; } }
 
@@ -40,6 +42,7 @@ namespace CodeImp.DoomBuilder.LightingMode
 			pos = p;
 			enabled = true;
 			maxradius = 1024;
+			brightness = 16;
 		}
 
 		#endregion

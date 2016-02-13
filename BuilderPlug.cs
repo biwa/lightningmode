@@ -98,6 +98,10 @@ namespace CodeImp.DoomBuilder.LightingMode
 			List<Vertex> shadowCastingVertices = new List<Vertex>();
 			Queue<DrawnVertex> dvl = new Queue<DrawnVertex>();
 
+			// Update the blockmap if the map was changed
+			if (General.Map.IsChanged)
+				CreateBlockmap();
+
 			// clear all vertices found for previous light sources
 			shadowCastingVertices.Clear();
 
@@ -318,14 +322,42 @@ namespace CodeImp.DoomBuilder.LightingMode
 			return true;
 		}
 
+		public bool HasLOS(Vector3D p1, Vector3D p2)
+		{
+			Line2D line = new Line2D(p1, p2);
+
+			// TODO: use blockmap
+			foreach (Linedef ld in General.Map.Map.Linedefs)
+			{
+				if (ld.Back == null && Line2D.GetIntersection(line, ld.Line) == true)
+					return false;
+			}
+
+			return true;
+		}
+
+		private Vector2D GetIncenter(List<Vector2D> points)
+		{
+			Line2D a = new Line2D(points[0], points[1]);
+			Line2D b = new Line2D(points[1], points[2]);
+			Line2D c = new Line2D(points[2], points[0]);
+			Vector2D A = points[2];
+			Vector2D B = points[0];
+			Vector2D C = points[1];
+			float p = a.GetLength() + b.GetLength() + c.GetLength();
+
+			float x = (a.GetLength() * A.x + b.GetLength() * B.x + c.GetLength() * C.x) / p;
+			float y = (a.GetLength() * A.y + b.GetLength() * B.y + c.GetLength() * C.y) / p;
+
+			return new Vector2D(x, y);
+		}
+
         #region ================== Actions
 
         [BeginAction("do_lighting")]
         public void DoLighting()
         {
 			Queue<DrawnVertex> dvl = new Queue<DrawnVertex>();
-
-			// MessageBox.Show(Line2D.GetSideOfLine(new Vector2D(256, 288), new Vector2D(230.4f, 256), new Vector3D(384, 448, 0)).ToString());
 
 			// Make it not crash on drawing
 			General.Settings.FindDefaultDrawSettings();
@@ -355,9 +387,9 @@ namespace CodeImp.DoomBuilder.LightingMode
 			while(dvl.Count != 0)
 			{
 				Tools.DrawLines(new List<DrawnVertex> { dvl.Dequeue(), dvl.Dequeue() });
+				if(!General.Map.UDMF) General.Map.Map.SnapAllToAccuracy();
+				General.Map.Map.Update();
 			}
-
-			string infotext = "";
 
 			// change the light values of the sectors
 			foreach (LightingThing lt in LightingMode.lights)
@@ -365,93 +397,23 @@ namespace CodeImp.DoomBuilder.LightingMode
 				// right now the light source must be a floor lamp
 				if (lt.Enabled == false) continue;
 
-				infotext += "light " + lt.Position.ToString() + "\n";
-
 				foreach (Sector s in General.Map.Map.Sectors)
 				{
 					bool lightit = false;
 
-					infotext += "sector: " + s.Index.ToString() + "\n";
+					s.Triangles.Triangulate(s);
 
-					foreach (Sidedef sd in s.Sidedefs)
-					{
-						infotext += "sd " + sd.Index.ToString() + "(" + sd.Line.Start.Position.ToString() + "/" + sd.Line.End.Position.ToString() + "): ";
-						Vector2D v1 = Line2D.GetCoordinatesAt(sd.Line.Start.Position, sd.Line.End.Position, 0.5f);
-						Vector2D v2 = lt.Position;
+					Vector2D incenter = GetIncenter(new List<Vector2D>() { s.Triangles.Vertices[0], s.Triangles.Vertices[1], s.Triangles.Vertices[2] });
 
-						float sol = Line2D.GetSideOfLine(sd.Line.Start.Position, sd.Line.End.Position, lt.Position);
-
-						infotext += "(" + sol.ToString() + ") ";
-
-						if (sol >= -0.005f && sol <= 0.005f)
-						{
-							infotext += " on same line. discarding\n";
-							continue;
-						}
-
-						infotext += "checking...\n";
-
-						// MessageBox.Show("teste ld " + sd.Line.Index.ToString() + " (s: " + s.Index.ToString() + ")");
-
-						if (HasLOS(sd.Line, lt.Position))
-						{
-							infotext += "sd " + sd.Index.ToString() + " has LOS!\n";
-							lightit = true;
-							break;
-						}
-
-						infotext += "\n";
-					}
+					lightit = HasLOS(lt.Position, incenter);
+						
 
 					if (lightit == true)
 					{
-						s.Brightness += 32;
+						s.Brightness += lt.Brightness;
 					}
 				}
 			}
-
-			// MessageBox.Show(infotext);
-
-			// change the light values of the sectors
-			//foreach (Thing t in General.Map.Map.Things)
-			//{
-			//    // right now the light source must be a floor lamp
-			//    if (t.Type != 2028) continue;
-
-			//    Dictionary<Sector, bool> ls = new Dictionary<Sector, bool>();
-
-			//    foreach (Linedef ld in General.Map.Map.Linedefs)
-			//    {
-			//        ls[ld.Front.Sector] = true;
-
-			//        foreach (Linedef ldx in General.Map.Map.Linedefs)
-			//        {
-			//            if (ldx == ld) continue;
-			//            if (ldx.Start == ld.Start) continue;
-			//            if (ldx.Start == ld.End) continue;
-			//            if (ldx.End == ld.Start) continue;
-			//            if (ldx.End == ld.End) continue;
-
-			//            Vector2D v1 = Line2D.GetCoordinatesAt(ld.Start.Position, ld.End.Position, 0.5f);
-			//            Vector2D v2 = t.Position;
-
-			//            if (ldx.Back == null && Line2D.GetIntersection(ldx.Start.Position, ldx.End.Position, v1.x, v1.y, v2.x, v2.y) == true)
-			//            {
-			//                ls[ld.Front.Sector] = false;
-			//            }
-			//        }
-			//    }
-
-			//    foreach (KeyValuePair<Sector, bool> kvp in ls)
-			//    {
-			//        if(kvp.Value == true) kvp.Key.Brightness += 32;
-			//    }
-			//}
-
-
-			// MessageBox.Show("done!");
-
-			// General.Map.Map.SnapAllToAccuracy();
 
 			General.Map.IsChanged = true;
 			General.Map.Map.Update();
